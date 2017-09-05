@@ -5,33 +5,50 @@ general {
 }
 
 order += "run_watch DHCP"
-order += "path_exists VPN"
-order += "wireless wlan0"
+order += "run_watch VPN"
+order += "disk /"
+order += "wireless _first_"
+order += "volume master"
 order += "battery 0"
 order += "tztime local"
 
-wireless wlan0 {
-  format_up = "W: (%quality at %essid, %bitrate) %ip"
+run_watch DHCP {
+  format = "%title: %status "
+  pidfile = "/var/run/dhclient*.pid"
+}
+
+run_watch VPN {
+  format = " %title: %status "
+  pidfile = "/var/run/openvpn/mullvad_linux.pid"
+}
+
+disk "/" {
+  format = " %avail "
+  low_threshold = 15
+}
+
+wireless _first_ {
+  format_up = " W: (%quality at %essid, %bitrate) %ip "
     format_down = "W: down"
 }
 
+volume master {
+  format = "♪: %volume"
+    format_muted = "♪: muted (%volume)"
+    device = "default"
+    mixer = "Master"
+    mixer_idx = 0
+}
+
 battery 0 {
-  format = "%percentage %remaining remaining"
+  format = " %percentage %remaining remaining "
     hide_seconds = true
     integer_battery_capacity = true
     path = "/sys/class/power_supply/BAT%d/uevent"
     low_threshold = 10
-}
-
-run_watch DHCP {
-  pidfile = "/var/run/dhclient*.pid"
-}
-
-path_exists VPN {
-# path exists when a VPN tunnel launched by nmcli/nm-applet is active
-  path = "/proc/sys/net/ipv4/conf/tun0"
+    threshold_type = percentage
 }
 
 tztime local {
-  format = "%a %b %d %l:%M %p"
+  format = " %a %b %d %H:%M %p "
 }
